@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <!--css顺序不能变-->
+        <link rel="stylesheet" type="text/css" href="../css/element.2.4.5.css"/>
+         <link href="../css/fonts/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+        <!--自定义CSS-->
+        <link rel="stylesheet" type="text/css" href="../css/baseDefine/pageDefine.css"/>
+    </head>
+    <body>
+        <!--右侧主要内容-->
+        <div class="main">
+            <div id="app">
+                <div class="section">
+                    <div class="section-main">
+                        <el-form :model="form" ref="form" label-width="40%" :rules="rules" >
+                            <el-row :gutter="20">
+                                <el-col :span="8" >
+                                    <el-form-item label="系统名"  prop="system">
+                                        <el-select  v-model="form.system" placeholder="请选择业务线" @change="getActionDictBySystem">
+                                            <el-option v-for="s in systemList" :key="s.system"  :label="s.systemName" :value="s.system"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="业务动作" >
+                                        <el-select  v-model="form.activeId" placeholder="请选择">
+                                            <el-option v-for="activeDict in activeDictList" :key="activeDict.activeId" :label="activeDict.activeName" :value="activeDict.activeId"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="统计单位"  prop="countUnit">
+                                        <el-select v-model="form.countUnit" placeholder="请选择" @change="changeCountDate">
+                                            <el-option v-for="activeDict in countUnitList" :key="activeDict.activeId" :label="activeDict.activeName" :value="activeDict.activeId"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+
+                            </el-row>
+                            <el-row class="" :gutter="20">
+                                <el-col :span="8">
+                                    <el-form-item label="TP性能值"  prop="tp">
+                                        <el-select v-model="form.tp" placeholder="请选择">
+                                            <el-option v-for="activeDict in TPList" :key="activeDict.activeId" :label="activeDict.activeName" :value="activeDict.activeId"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="统计开始日时"  prop="countDate">
+                                        <el-date-picker
+                                                v-model="form.countDate"
+                                                type="datetime"
+                                                placeholder="选择日期时间"
+                                                default-time="09:00:00"
+                                                value-format="yyyy-MM-dd HH:mm:ss">
+                                        </el-date-picker>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item >
+                                        <el-button type="success" @click="searchTP('form')">查询</el-button>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </el-form>
+                    </div>
+                </div>
+                
+
+            </div>
+            <div>
+                <div id="performanceChart" style="overflow-x:inherit;width: 80%;height:600px;left: 50px"></div>
+
+            </div>
+        </div>
+
+	    <script src="../js/vue.2.5.16.dev.js" type="text/javascript" charset="utf-8"></script>
+	    <script src="../js/element.2.4.5.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../js/vue-resource.min.js"></script>
+        <script src="../js/common.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../js/echarts.js"></script>
+        <script src="../js/macarons.js"></script>
+        <script src="../js/baseDefine/performance.js" type="text/javascript" charset="utf-8"></script>
+        <!-- 引入 ECharts 文件 -->
+        <script type="text/javascript">
+
+        </script>
+    </body>
+</html>

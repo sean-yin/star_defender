@@ -1,0 +1,247 @@
+body,html{
+  	width: 100%;
+  	height: 100%;
+  	background: #eff2f7;
+  	overflow-x: hidden;
+  	font-size: 16px;
+  	font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  }
+      /*margin: 5px 8px 0;*/
+  .mainbody>.maintop{
+  	height: 100%;
+  }
+  ::-webkit-input-placeholder {
+        font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+    }
+.title{
+	width: 100%;
+	height: 60px;
+	background: #20a0ff;
+	padding: 10px 20px 0;
+	box-sizing: border-box;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 10;
+}
+.ecej,.ecej1{
+	float: left;
+	height: 40px;
+}  
+.ecej1{
+	display: none;
+}
+.ecej span,.ecej1 span{
+	margin-top: 6px !important;
+}
+.ecej>:nth-child(2),.ecej1>:nth-child(2){
+	margin-left: 8px;
+	margin-right: 8px;
+}
+.ecej img,.ecej1 img{
+	height: 100%;
+	vertical-align: middle;
+}
+.ecej span,.ecej1 span{
+	display: inline-block;
+	color: #fff;
+	line-height:16px;
+	vertical-align: middle;
+	margin-top: 3px;
+}
+.information{
+	float: right;
+	color: #fff;
+	line-height: 40px;
+} 
+.infor{
+	margin-left: 8px;
+}
+.infor:hover{
+	cursor: pointer;
+}
+.icon{
+	float:right;
+	display: none;
+}
+.icon img{
+	display: block;
+	margin-top: 12px;
+}
+.icon .icon1{
+	width: 20px;
+}
+.icon .close{
+	width: 16px;
+}
+.cover{
+	display: none;
+}
+/*左侧列表*/
+ .features{
+ 	padding: 35px 0 0 20px;
+ }
+ .features li:hover{
+ 	cursor: pointer;
+ }
+
+ .first-li{
+ 	margin-bottom:27px;
+ 	line-height: 16px;
+ }
+ .sec-li{
+ 	line-height: 16px;
+ }
+ .features i{
+ 	display: inline-block; 	
+ 	vertical-align: middle;	
+ }
+ .features span{
+ 	vertical-align: middle;	
+ }
+ .manage{	
+ 	width: 17px;
+ 	height: 18px;
+ 	background:url(../img/maoff.png) ;
+ 	background-position: center;
+ 	background-size: cover;
+ }
+ .help{
+ 	width: 17px;
+ 	height: 19px;
+ 	background:url(../img/heoff.png) ;
+ 	background-position: center;
+ 	background-size: cover;
+ }
+ 
+.el-button--primary {
+    width: 88px;
+}
+.help-order {
+    padding: 10px 0px;
+    width: 86px;
+    border: 1px solid #20a0ff;
+    color: #20a0ff;
+}
+.postmsg{
+	margin-top: 35px;
+}
+.helpguest{
+	height: 100%;
+}
+.mainbody{
+	position: relative;
+	top: 0;
+	left: 0;
+	min-height: 100%;
+	box-sizing: border-box;
+	padding-top: 60px;
+}
+
+
+.main{
+	min-height: 100%;
+	background: #fff;
+	padding: 50px 30px 30px 30px;
+	box-sizing: border-box;
+ }
+ .main .el-select{
+ 	width: 100%;
+ 	display: block;
+ }
+ 
+ .el-date-editor.el-input{
+ 	width: 100%;
+ }
+ .main .time .el-form-item__content{
+ 	margin-left: 0 !important;
+ }
+
+.first-li a span,.sec-li a span {
+    margin-left: 5px;
+}
+
+.el-dialog__headerbtn,.el-dialog__header{
+    display: none;
+}
+
+@media screen and (min-width:1200px){
+	.mainbody{
+		height: 100%;
+	}
+	li a span{
+		color: #000;
+	}
+	
+}
+
+@media screen and (min-width:768px) and (max-width:1199px){
+	.icon .close{
+		display: none;
+	}
+	li a span{
+		color: #000;
+	}
+
+	/*弹框*/
+}
+
+@media screen and (max-width:767px){
+	.main {
+	    padding: 30px 20px 50px 20px;
+	    box-sizing: border-box;
+	}
+	.features1{
+		display: none;
+	}
+	.feature,.information,.ecej{
+		display: none;
+	}
+	.features li a {
+		width: 100%;
+		display: block;
+	}
+	li a span{
+		color: #fff;
+	}
+	 .manage{	
+	 	width: 17px;
+	 	height: 17px;
+	 	background:url(../img/maoff1.png) ;
+	 	background-position: center;
+	 	background-size: cover;
+ 	}
+ 	.help{
+	 	width: 17px;
+	 	height: 17px;
+	 	background:url(../img/heoff1.png) ;
+	 	background-position: center;
+	 	background-size: cover;
+	 }
+	.ecej1{
+		display: block;
+	}
+	.icon{
+		display: block;
+	}
+	.cover{
+		display: block;
+		position: absolute;
+		top: 60px;
+		left: 0;
+		width: 100%;
+		background: #585858;
+		padding: 0;		
+	}
+	.cover li{
+		padding:0  20px;
+		margin-bottom: 0;
+		height: 58px;
+		line-height: 58px;
+		color: #fff;
+		border-bottom: 1px solid #757575;
+	}	
+	.cover .infor{
+		float: right;
+	}
+}

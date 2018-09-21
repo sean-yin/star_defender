@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yixin.star.mapper.ClueOrderMapMapper">
+    <insert id="addMap" parameterType="com.yixin.star.domain.ClueOrderMap" keyProperty="id" useGeneratedKeys="true">
+        insert into clue_order_map(id,create_time,order_id,clue_id) values(#{id},#{createTime},#{orderId},#{clueId})
+    </insert>
+    <select id="selectByParams" parameterType="com.yixin.star.dto.ClueOrderMapDTO" resultType="com.yixin.star.domain.ClueOrderMap">
+        SELECT
+          c.id as id,
+          c.create_time as createTime,
+          c.clue_id as clueId,
+          c.order_id as orderId
+        FROM clue_order_map c
+        <where>
+            1=1
+            <if test="lteCreateTime != null">
+                AND c.create_time <![CDATA[ <= ]]> #{lteCreateTime}
+            </if>
+            <if test="gteCreateTime != null">
+                AND c.create_time <![CDATA[ >= ]]> #{gteCreateTime}
+            </if>
+            <if test="clueId != null">
+                AND c.clue_id = #{clueId}
+            </if>
+            <if test="orderId != null">
+                AND c.order_id = #{orderId}
+            </if>
+        </where>
+
+    </select>
+</mapper>

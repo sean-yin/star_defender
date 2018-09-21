@@ -1,0 +1,229 @@
+package com.yixin.star;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+
+import com.yixin.star.dto.ESLogParamsDTO;
+import com.yixin.star.utils.StarDateUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.DocValueFormat;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSON;
+
+/**
+ * Package : utils
+ *
+ * @author YixinCapital -- yinx
+ *         2018/8/30 15:41
+ */
+@Component
+public class ElasticClient {
+    private static Logger log = LoggerFactory.getLogger(ElasticClient.class);
+
+    private static RestHighLevelClient eclient = null;
+    @Value("${es.ip}")
+    private String hostName;
+    @Value("${es.port}")
+    private String port;
+
+    /**
+     * 获取RestHighLevelClient对象
+     *
+     * @return RestHighLevelClient对象
+     */
+    public RestHighLevelClient getClient() {
+
+        if (eclient != null) {
+            return eclient;
+        }
+        String[] nodes = hostName.split("#");
+
+        HttpHost[] hosts = new HttpHost[nodes.length];
+        for (int i = 0, j = nodes.length; i < j; i++) {
+            hosts[i] = new HttpHost(nodes[i], Integer.valueOf(port));
+        }
+
+        //初始化RestClient实例
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(RestClient.builder( hosts));
+        eclient = restHighLevelClient;
+        return restHighLevelClient;
+    }
+
+    /**
+     * 把传入数据插入到ES
+     * @param indexName 索引名称
+     * @param type 类型名
+     * @param source 插入数据
+     * @return 返回插入件数
+     */
+    public IndexResponse addOneRecord(String indexName, String type, String source) throws Exception {
+        RestHighLevelClient tc = getClient();
+
+        IndexRequest indexRequest = new IndexRequest(indexName, type);
+        indexRequest.source(source, XContentType.JSON);
+
+
+        IndexResponse response = tc.index(indexRequest);
+
+
+        return response;
+    }
+
+    /**
+     * 根据参数查询一定时间间隔内的数据
+     * @param indexName 索引名称
+     * @param minute 时间间隔(分钟)
+     * @param querySize 返回条数
+     * @return
+     */
+    public SearchResponse searchByTimeSplit(String indexName, int minute,int querySize,String type) {
+        RestHighLevelClient tc = getClient();
+        // 取最近minute分钟内的数据
+        Date nowDate = new Date();
+        SearchResponse response = null;
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.from(0);
+        //sourceBuilder.size(querySize);
+        //sourceBuilder.query(QueryBuilders.matchAllQuery());
+        sourceBuilder.fetchSource(new String[]{"message"}, new String[]{});
+
+        MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery("message", "<pre_order> <pre_pass_order> <pre_pass_order> pre_out_order");
+        matchQueryBuilder.operator(Operator.OR);
+        //RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("@timestamp");
+        //rangeQueryBuilder.gte(DateUtils.addMinutes(nowDate, -minute));
+        //rangeQueryBuilder.lte(nowDate);
+        BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+        //boolBuilder.must(rangeQueryBuilder);
+        boolBuilder.must(matchQueryBuilder);
+        sourceBuilder.query(boolBuilder);
+        SearchRequest searchRequest = new SearchRequest(indexName);
+        searchRequest.source(sourceBuilder);
+        searchRequest.types(type);
+        try {
+            response = tc.search(searchRequest);
+            System.out.println(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     * 根据参数查询一定时间间隔内的数据
+     * @param indexName 索引名称
+     * @param type 类型名
+     * @param actives 查询参数集合
+     * @param from 从第几行开始查询
+     * @param size 查询多少条
+     * @return
+     */
+    public SearchResponse searchMessageByParams(String indexName, String type, List<String> actives,int from,int size) {
+        RestHighLevelClient tc = getClient();
+        SearchResponse response = null;
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.from(from);
+        sourceBuilder.size(size);
+        sourceBuilder.fetchSource(new String[]{"message"}, new String[]{});
+        if (CollectionUtils.isEmpty(actives)) {
+            return response;
+        }
+        StringBuilder params = new StringBuilder("");
+        actives.stream().forEach(active -> {
+            params.append("<").append(active).append("> ");
+        });
+        MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery("message", params.toString());
+        matchQueryBuilder.operator(Operator.OR);
+        BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+        boolBuilder.must(matchQueryBuilder);
+        sourceBuilder.query(boolBuilder);
+        SearchRequest searchRequest = new SearchRequest(indexName);
+        searchRequest.source(sourceBuilder);
+        searchRequest.types(type);
+        try {
+            response = tc.search(searchRequest);
+            log.info("根据动作id---{}---查询到日志信息=={}",params, JSON.toJSONString(response));
+        } catch (IOException e) {
+            log.error("根据动作id查询日志异常");
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public SearchResponse searchByMuiltiParams(String indexName, String type, ESLogParamsDTO esLogParamsDTO, int from, int size){
+        RestHighLevelClient tc = getClient();
+        SearchResponse response = null;
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.from(from);
+        sourceBuilder.size(size);
+        sourceBuilder.fetchSource(new String[]{"@timestamp","upstream_statcode","upstream_resptime","request"}, new String[]{});
+        BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+        //系统
+        MatchQueryBuilder matchQueryBuilder1 = QueryBuilders.matchQuery("http_host", esLogParamsDTO.getHttp_host()) ;
+        boolBuilder.must(matchQueryBuilder1);
+        if (StringUtils.isNotBlank(esLogParamsDTO.getRequest())) {
+            //请求路径-动作
+            MatchQueryBuilder matchQueryBuilder2 = QueryBuilders.matchQuery("request", esLogParamsDTO.getRequest()).operator(Operator.OR);
+            boolBuilder.must(matchQueryBuilder2);
+        }
+        if (StringUtils.isNotBlank(esLogParamsDTO.getStatus_code())) {
+            //响应状态码
+            MatchQueryBuilder matchQueryBuilder3 = QueryBuilders.matchQuery("status_code", esLogParamsDTO.getStatus_code());
+            boolBuilder.must(matchQueryBuilder3);
+        }
+        if (null != esLogParamsDTO.getLteTimestamp() || null != esLogParamsDTO.getGteTimestamp()) {
+            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("@timestamp");
+            if (null != esLogParamsDTO.getLteTimestamp()) {
+                rangeQueryBuilder.lte(esLogParamsDTO.getLteTimestamp());
+            }
+            if (null != esLogParamsDTO.getGteTimestamp()) {
+                rangeQueryBuilder.gte(esLogParamsDTO.getGteTimestamp());
+            }
+            boolBuilder.must(rangeQueryBuilder);
+        }
+        if (StringUtils.isNotBlank(esLogParamsDTO.getResqlimit())) {
+            RangeQueryBuilder rangeQueryBuilder1 = QueryBuilders.rangeQuery("upstream_resptime");
+            rangeQueryBuilder1.gt(esLogParamsDTO.getResqlimit());
+            boolBuilder.must(rangeQueryBuilder1);
+        }
+        if (CollectionUtils.isNotEmpty(esLogParamsDTO.getStatusCodeList())) {
+            BoolQueryBuilder codeBoolBuilder = QueryBuilders.boolQuery();
+            esLogParamsDTO.getStatusCodeList().forEach(code -> {
+                codeBoolBuilder.should(QueryBuilders.matchQuery("status_code", code));
+            });
+            sourceBuilder.postFilter(codeBoolBuilder);
+        }
+        sourceBuilder.query(boolBuilder);
+        if (null != esLogParamsDTO.getRespTimeSort()) {
+            sourceBuilder.sort(SortBuilders.fieldSort("upstream_resptime").order(esLogParamsDTO.getRespTimeSort()));
+        }
+        SearchRequest searchRequest = new SearchRequest(indexName);
+        searchRequest.source(sourceBuilder);
+        searchRequest.types(type);
+        try {
+            response = tc.search(searchRequest);
+            log.info("++查询到日志信息=={}",JSON.toJSONString(response));
+        } catch (IOException e) {
+            log.error("根据动作id查询日志异常");
+            e.printStackTrace();
+        }
+        return response;
+    }
+}

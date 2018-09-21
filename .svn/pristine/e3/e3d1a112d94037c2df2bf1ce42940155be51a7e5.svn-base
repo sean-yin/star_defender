@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <!--css顺序不能变-->
+        <link rel="stylesheet" type="text/css" href="../css/element.2.4.5.css"/>
+         <link href="../css/fonts/font-awesome.min.css" rel="stylesheet">
+
+        <!--自定义CSS-->
+        <link rel="stylesheet" type="text/css" href="../css/baseDefine/pageDefine.css"/>
+    </head>
+    <body>
+        <!--右侧主要内容-->
+        <div class="main">
+            <div id="app">
+                <div class="section">
+                    <div class="section-title">定义页面分类</div>
+                    <div class="section-main">
+                        <el-form :model="form" ref="form" label-width="40%" >
+                            <el-row :gutter="20">
+                                <el-col :span="6" >
+                                    <el-form-item label="业务线1"  prop="businessLine">
+                                        <el-select v-model="form.businessLine" placeholder="请选择业务线" @change="businessLineChange">
+                                            <el-option v-for="status in businessLineList" :key="status.text"  :label="status.text" :value="status.value"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="6">
+                                    <el-form-item label="业务线二级分类"  prop="secondClassify">
+                                        <el-select v-model="form.secondClassify" placeholder="请选择业务线二级分类" @change="showPageDefine">
+                                            <el-option v-for="status in secondClassifyList" :key="status.text" :label="status.text" :value="status.value"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="6">
+                                    <el-form-item label="任务名"  prop="taskId">
+                                        <el-select v-model="form.taskId" placeholder="请选择任务名"  @change="showPageDefine">
+                                            <el-option v-for="status in taskInfoList" :key="status.text" :label="status.text" :value="status.value"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                  <el-col :span="6">
+                                    <el-form-item label="页面名称"  prop="pageId">
+                                        <el-select v-model="form.id" placeholder="请选择页面名称"  @change="showPageDefine">
+                                            <el-option v-for="status in pageInfoList" :key="status.label" :label="status.pageName" :value="status.id"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row class="checkgroup" >
+                                <el-checkbox-group v-model="checkedCategories" @change="showPageDefine">
+                                    <el-checkbox-button v-for="category in categories"  :key="category" :label="category">{{category}}</el-checkbox-button>
+                                </el-checkbox-group>
+                            </el-row>
+
+                            <el-row class="btns">
+                                <el-button type="success" @click="referenceDialog">参照</el-button>
+                                <el-button type="success" @click="overlapCheckDialog">关联校验</el-button>
+                                <el-button @click="savePageDefine">保存</el-button>
+                            </el-row>
+                        </el-form>
+                    </div>
+                </div>
+                
+                <el-row>
+                    <el-table :data="tableData" style="width: 100%" border>
+                        <el-table-column type="expand">
+                            <template slot-scope="scope">
+                                <el-form label-position="left" inline class="table-expand">
+                                    <el-form-item label="最小长度" >
+                                        <div>
+                                            <el-input v-model="scope.row.minLength"  placeholder="输入数字" size="3"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="最大长度">
+                                        <div>
+                                            <el-input v-model="scope.row.maxLength"  placeholder="输入数字" size="3"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="下限">
+                                    <div>
+                                        <el-input v-model="scope.row.minLimit"  placeholder="输入数字" size="9"> </el-input>
+                                    </div>
+                                </el-form-item>
+                                    <el-form-item label="上限">
+                                        <div>
+                                            <el-input v-model="scope.row.maxLimit"  placeholder="输入数字" size="9"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="特殊校验">
+                                        <div>
+                                            <el-select v-model="scope.row.specialCheck" placeholder="输入校验">
+                                                <el-option v-for="type in specialCheckList"  :key="type.speMethodId" :label="type.speMethodName" :value="type.speMethodId"></el-option>
+                                            </el-select>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="缺省值">
+                                        <div>
+                                            <el-input v-model="scope.row.defaultValue"  placeholder="请输入" size="9"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="关联展示字段">
+                                        <div>
+                                            <el-input v-model="scope.row.nextFillKey"  placeholder="请输入"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="块切换展示项">
+                                        <div>
+                                            <el-input v-model="scope.row.blockLevels"  placeholder="请输入"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="字典码">
+                                        <div>
+                                            <el-input v-model="scope.row.dictCode"  placeholder="请输入"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="字典路径">
+                                        <div>
+                                            <el-input v-model="scope.row.dictUrl"  placeholder="请输入"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="块切换字段项">
+                                        <div>
+                                            <el-input v-model="scope.row.blockLevelCasKey"  placeholder="请输入"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="开关编码">
+                                        <div>
+                                            <el-input v-model="scope.row.swichCode"  placeholder="请输入"> </el-input>
+                                        </div>
+                                    </el-form-item>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+					   	<el-table-column align="center" type="index" label="NO" width="100"></el-table-column>
+					    <el-table-column align="center" prop="category" label="分类" width="140"></el-table-column>
+					    <el-table-column align="center" prop="itemName" label="显示项名" width="160"></el-table-column>
+					    <el-table-column align="center" prop="isDisable" label="显示否" width="140">
+                            <template slot-scope="scope">
+                                <div>
+                                    <el-checkbox v-model="scope.row.isDisable" true-label="1" false-label="0" ></el-checkbox>
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column align="center" prop="isEdit" label="可编辑" width="140">
+                            <template slot-scope="scope" >
+                                <div>
+                                    <el-checkbox v-model="scope.row.isEdit" true-label="1" false-label="0"></el-checkbox>
+                                </div>
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column align="center" prop="isRequired" label="必输项" width="140">
+                            <template slot-scope="scope" >
+                                <div>
+                                    <el-checkbox v-model="scope.row.isRequired" true-label="1" false-label="0"></el-checkbox>
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column align="center" prop="maxLength" label="展示顺序" width="160">
+                            <template slot-scope="scope" >
+                                <div>
+                                    <el-input v-model="scope.row.pageNo"  placeholder="输入数字" size="3"> </el-input>
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column align="center" prop="inputType" label="输入类型" width="160">
+                            <template slot-scope="scope" >
+                                <div>
+                                    <el-select v-model="scope.row.inputType" placeholder="输入类型">
+                                        <el-option v-for="type in inputTypeList" :key="type.text" :label="type.text" :value="type.value"></el-option>
+                                    </el-select>
+                                </div>
+                            </template>
+                        </el-table-column>
+
+
+                        <el-table-column align="center" prop="itemDesc" label="显示项说明"  ></el-table-column>
+				  	</el-table>
+                   </el-row>
+
+               <!-- 页面关联校验定义对话框-->
+                <el-dialog title="页面关联校验定义" :visible.sync="dialogVisible" size="large" @close="closeFn">
+                    <div>
+                        <el-table :data="overlapCheckMethodList" style="width: 100%" >
+                            <el-table-column align="center" type="index" label="NO" width="70"></el-table-column>
+                            <el-table-column align="center" prop="id" label="校验" width="70">
+                                <template slot-scope="scope" >
+                                    <div>
+                                        <el-checkbox v-model="scope.row.isNecessary" true-label="1" false-label="0"></el-checkbox>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column align="center" prop="overlapMethodName" label="校验方法名"></el-table-column>
+                            <el-table-column align="center" prop="params" label="参数组"></el-table-column>
+                            <el-table-column align="center" prop="overlapMethodDesc" label="校验方法说明"  ></el-table-column>
+
+                        </el-table>
+                    </div>
+                    <div slot="footer" center="true">
+                        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+                    </div>
+                </el-dialog>
+
+
+                <!--参照对话框-->
+                <el-dialog title="请选择参照定义" :visible.sync="referenceDialogVisible" size="large" @close="closeRF">
+                    <div class="main">
+                            <el-form ref="referenceForm"  :model="referenceForm" label-width="100px">
+                                <el-row  :gutter="10">
+                                    <el-col :span="12">
+                                        <el-form-item label="业务线" prop="businessLine">
+                                            <el-select v-model="referenceForm.businessLine" placeholder="请选择业务线" >
+                                                <el-option v-for="status in businessLineList" :key="status.text" :label="status.text" :value="status.value"></el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <el-form-item label="二级分类"  prop="busiTypeChild">
+                                            <el-select v-model="referenceForm.busiTypeChild" placeholder="请选择二级分类" >
+                                                <el-option v-for="status in secondClassifyList" :key="status.text" :label="status.text" :value="status.value"></el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-col>
+
+                                </el-row>
+                                <el-row :gutter="10">
+                                    <el-col :span="12">
+                                        <el-form-item label="任务名"  prop="taskName">
+                                            <el-select v-model="referenceForm.taskName" placeholder="请选择任务名" >
+                                                <el-option v-for="status in taskInfoList" :key="status.text" :label="status.text" :value="status.value"></el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <el-form-item label="页面名称"  prop="pageName">
+                                            <el-select v-model="referenceForm.pageName" placeholder="请选择页面名称" >
+                                                <el-option v-for="status in pageInfoList" :key="status.pageName"  :label="status.pageName" :value="status.id"></el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-col>
+                                </el-row>
+                            </el-form>
+                    </div>
+                    <div slot="footer" center="true">
+
+                            <el-button type="primary" @click="referenceAffective">确定</el-button>
+                            <el-button @click="referenceDialogVisible = false">取消</el-button>
+
+                    </div>
+                </el-dialog>
+            </div> 
+        </div>
+
+	    <script src="../js/vue.2.5.16.dev.js" type="text/javascript" charset="utf-8"></script>
+	    <script src="../js/element.2.4.5.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../js/vue-resource.min.js"></script>
+        <script src="../js/common.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../js/baseDefine/pageDefineV2.js" type="text/javascript" charset="utf-8"></script>
+        <script type="text/javascript">
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../css/element.2.4.5.css"/>
+		<link rel="stylesheet" type="text/css" href="../css/css.css"/>
+		 <link href="../css/fonts/font-awesome.min.css" rel="stylesheet">
+	     <link href="../css/style.css?v=4.1.0" rel="stylesheet">
+
+	</head>
+	<body>
+	    <div id="app">	 
+	        <!--头-->
+	        <div theme="black" class="header">
+	        	<a href="#" class="logo"><img src="../img/logo.jpg"/></a>
+                <div  style="color:red;font-family:'Helvetica Neue';height: 10px; width: 300px; margin-top: 20px;margin-left: 5px; float: left">
+
+                </div>
+
+	        </div>
+   
+
+            <!--左导航-->
+            <div class="nav" id="nav">
+                <el-menu  v-bind="{defaultActive:selectedValue}" class="el-menu-vertical-demo" style="overflow-y:auto;">
+                    <template v-for="(i,$attributes) in nav">
+                        <el-submenu v-bind="{index:i.id}" v-if="i.children && i.hasChildren==true">
+                            <template slot="title"><i :class=i.attributes.icon></i>{{i.text}}</template>
+                            <template v-for="(j,attributes) in i.children">
+                                <el-submenu v-if="j.children && j.hasChildren==true" v-bind="{index:j.id}">
+                                    <template slot="title">{{j.text}}</template>
+                                    <el-menu-item v-for="(k,$attributes) in j.children" v-bind="{index:k.id}" @click="jump(k.attributes.url,k.text,k.id)"><i :class=k.attributes.icon></i>{{k.text}}</el-menu-item>
+                                </el-submenu>
+                                <el-menu-item v-else v-bind="{index:j.id}" @click="jump(j.attributes.url,j.text,j.id)"><i :class=j.attributes.icon></i>{{j.text}}</el-menu-item>
+                            </template>
+                        </el-submenu>
+                        <el-menu-item v-bind="{index:i.id}" v-else @click="jump(i.attributes.url,i.text,i.id)"><i class="el-icon-menu"></i>{{i.menuName}}</el-menu-item>
+                    </template>
+                </el-menu>
+            </div>
+
+            <!--右侧主要内容-->
+            <div style="padding-top: 60px;margin-left: 230px;">
+                <el-tabs v-model="editableTabsValue2" type="card" closable @tab-remove="removeTab" @tab-click="changeMenu">
+                    <el-tab-pane v-for="(item, index) in editableTabs2" :label="item.title" :name="item.name">
+                        <iframe :src="item.content" v-bind="{id:'iframepage'+item.content}"  frameBorder=0 @onLoad="iFrameHeight" :height="height" :width="width"></iframe>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+        </div>
+
+	    <script src="../js/vue.2.5.16.min.js" type="text/javascript" charset="utf-8"></script>
+	    <script src="../js/element.2.4.5.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../js/vue-resource.min.js"></script>
+        <script src="../js/common.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../js/swiper-3.3.1.jquery.min.js"></script>
+	    <script type="text/javascript">
+            var ssv='';
+            var vm=new Vue({
+                    el:'#app',
+                    data:{
+                        editableTabsValue2: '1',//对应打开x的tab页name
+                        editableTabs2: [{
+                            title: 'Tab 1', //tab名称
+                            name: '1',  //等价于 =tabIndex+1
+                            content: '',//对应url
+                            //contentTag:'',
+                            svalue:""//对应code
+                        }],
+                        tabIndex: 1,//tab页的index属性
+                        nav:[],
+                        empName:'',
+                        selectedValue:'1',
+                        iframeSrc:'',
+                        total: 0,
+                        rows: '',
+                        width:window.innerWidth - 230 +'px',
+                        height:window.innerHeight-121 + 'px',
+                        dialogVisible: false
+                    },
+                    methods: {
+                        changeMenu:function(target){
+                           this.$data.selectedValue=this.editableTabs2[target.index].svalue;
+                            //Vue.set(vm.$data,'selectedValue',this.editableTabs2[target.index].svalue)
+                        },
+                        handleSelect: function(key, keyPath, value) {
+                            console.log(key, keyPath, value)
+                        },
+                        logout:function(){
+                        	this.$http.get('/logOut').then(
+                                    function(data){
+                                        window.location.href="/html/index.html";
+                                    },
+                                    function(data){
+                                        	common.toIndex(data);
+                                    });
+                        },
+                        getMenus:function(){
+
+	                                        this.nav = [{
+                                                "attributes": {
+                                                    "icon": "fa fa-bars",
+                                                    "url": ""
+                                                },
+                                                "checked": false,
+                                                "children": [{
+                                                    "attributes": {
+                                                        "icon": "fa fa-book",
+                                                        "url": "performance.html"
+                                                    },
+                                                    "checked": false,
+                                                    "children": [],
+                                                    "hasChildren": false,
+                                                    "hasParent": true,
+                                                    "id": "70",
+                                                    "parentId": "1",
+                                                    "text": "TP性能统计"
+                                                }, {
+                                                    "attributes": {
+                                                        "icon": "fa fa-folder-open",
+                                                        "url": "visitis.html"
+                                                    },
+                                                    "checked": false,
+                                                    "children": [],
+                                                    "hasChildren": false,
+                                                    "hasParent": true,
+                                                    "id": "71",
+                                                    "parentId": "1",
+                                                    "text": "访问量统计"
+                                                }, {
+                                                    "attributes": {
+                                                        "icon": "fa fa-folder-open",
+                                                        "url": "operate_date.html"
+                                                    },
+                                                    "checked": false,
+                                                    "children": [],
+                                                    "hasChildren": false,
+                                                    "hasParent": true,
+                                                    "id": "72",
+                                                    "parentId": "1",
+                                                    "text": "操作时长统计"
+                                                }, {
+                                                    "attributes": {
+                                                        "icon": "fa fa-folder-open",
+                                                        "url": "over_limit.html"
+                                                    },
+                                                    "checked": false,
+                                                    "children": [],
+                                                    "hasChildren": false,
+                                                    "hasParent": true,
+                                                    "id": "73",
+                                                    "parentId": "1",
+                                                    "text": "超出阈值量统计"
+                                                }, {
+                                                    "attributes": {
+                                                        "icon": "fa fa-folder-open",
+                                                        "url": "fail_count.html"
+                                                    },
+                                                    "checked": false,
+                                                    "children": [],
+                                                    "hasChildren": false,
+                                                    "hasParent": true,
+                                                    "id": "74",
+                                                    "parentId": "1",
+                                                    "text": "访问失败量统计"
+                                                }
+                                                ],
+                                                "hasChildren": true,
+                                                "hasParent": false,
+                                                "id": "1",
+                                                "parentId": "0",
+                                                "text": "系统监控"
+                                            }];
+
+                            
+                        },
+
+                        getEmpName:function(){
+                            this.$http.post('/getEmpName').then(
+                                    function(data){
+                                    	var b=JSON.stringify(data.body.code);
+                                    	if (b != null && b!= "" && b=="200") {//验证通过
+                                     		   this.empName = data.body.data;
+                                     	}else{
+                                     		common.toIndex(data);
+                                     	}
+                                     	
+                                    },                                    
+                                    function(data){
+                                        	common.toIndex(data);
+                                        	
+                                    });
+                        },
+                        jump:function(url,menuName,code,tab){
+                            if(!url) return;
+                            if (tab == null) {
+                                this.addTab(this.editableTabsValue2,menuName,url,code);
+                            }
+                        },
+                        iFrameHeight:function(){
+                            var ifm= document.getElementById("iframepage");
+                            var subWeb = document.frames ? document.frames["iframepage"].document : ifm.contentDocument;
+                            if(ifm != null && subWeb != null) {
+                                ifm.height = subWeb.body.scrollHeight;
+                                ifm.width = subWeb.body.scrollWidth;
+                            }
+                        },
+                        addTab:function(targetName,menuName,url,code){
+                            //如果已经被打开，直接选中打开过的标签
+                            this.$data.selectedValue=code;
+                            var flag = true;
+                            this.editableTabs2.forEach(function(tab,index){
+                                if(tab.svalue === code){
+                                    vm.editableTabsValue2 = tab.name;
+                                    //vm.editableTabs2[tab.name-1].content=url;
+                                    flag = false;
+                                    vm.refreshTab(url);
+                                }
+                            });
+                            if (flag) {
+                                var newTabName = ++this.tabIndex + '';
+                                ///url.split('/');
+                                this.editableTabs2.push({
+                                    title: menuName,
+                                    name: newTabName,
+                                    content: url,
+                                    svalue:code
+                                });
+                                this.editableTabsValue2 = newTabName;
+                            }
+                        },
+
+            personal: function () {
+                layer.open({
+                    type: 2,
+                    title: '个人设置',
+                    maxmin: true,
+                    shadeClose: false,
+                    area: ['350px', '520px'],
+                    content: '/sys/user/personal/'
+                });
+            },
+                        removeTab:function(targetName){
+                            var tabs = this.editableTabs2;
+                            var activeName = this.editableTabsValue2;
+                            var sv ='';
+                            if (activeName === targetName) {
+                                tabs.forEach(function(tab,index){
+                                    if(tab.name === targetName){
+                                        var nextTab1 = tabs[index + 1];
+                                        var nextTab2 = tabs[index - 1];
+                                        if (nextTab1) {
+                                            activeName = nextTab1.name;
+                                            sv = nextTab1.svalue;
+                                        } else if (nextTab2){
+                                            activeName = nextTab2.name;
+                                            sv = nextTab2.svalue;
+                                        } else {
+                                            sv = 'empty';
+                                        }
+                                    }
+                                });
+                            }
+                            this.editableTabsValue2 = activeName;
+                            if (sv != '' || sv == 'empty'){
+                                this.selectedValue = sv;
+                            }
+//                            vm.$set('selectedValue',sv);//Uncaught TypeError: Cannot create property '1-1-1' on string 'selectedValue'
+                            this.editableTabs2 = tabs.filter(function (tab) {
+                                return tab.name !== targetName;
+                            });
+                        }
+                    },
+                mounted:function(){
+                        this.getMenus();//后台获取菜单json数据
+
+                    }
+                });
+//            vm.$watch('editableTabsValue2',function(val,oldVal){
+//                var tab = this.editableTabs2[val-1];
+//                if (tab){
+//                    this.selectedValue = this.editableTabs2[val-1].svalue;
+//                } else {
+//                    this.selectedValue = this.editableTabs2[0].svalue;
+//                }
+//            });
+            vm.$watch('nav',function(val,oldVal){
+                var nodes1 = val[0].nodes;
+                if (val != null) {
+                    if (nodes1 == null || nodes1.length ==0){
+                        this.editableTabs2[0].content = val[0].menuUrl;
+                        this.editableTabs2[0].svalue = val[0].code;
+                        this.editableTabs2[0].title = val[0].menuName;
+                        this.selectedValue = val[0].code;
+                    } else {
+                        var nodes2 = nodes1[0].nodes;
+                        if (nodes2 == null || nodes2.length == 0){
+                            this.editableTabs2[0].content = nodes1[0].menuUrl;
+                            this.editableTabs2[0].svalue = nodes1[0].code;
+                            this.editableTabs2[0].title = nodes1[0].menuName;
+                            this.selectedValue = nodes1[0].code;
+                        } else {
+                            this.editableTabs2[0].content = nodes2[0].menuUrl;
+                            this.editableTabs2[0].svalue = nodes2[0].code;
+                            this.editableTabs2[0].title = nodes2[0].menuName;
+                            this.selectedValue = nodes2[0].code;
+                        }
+                    }
+                }
+            });
+
+
+
+	    </script>
+	</body>
+</html>

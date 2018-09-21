@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yixin.star.mapper.SystemConfigMapper">
+    <!--auto generated Code-->
+    <resultMap id="BaseResultMap" type="com.yixin.star.domain.SystemConfig">
+        <result column="id" property="id" jdbcType="BIGINT"/>
+        <result column="system" property="system" jdbcType="VARCHAR"/>
+        <result column="system_name" property="systemName" jdbcType="VARCHAR"/>
+        <result column="http_host" property="httpHost" jdbcType="VARCHAR"/>
+        <result column="es_system_log_prefix" property="esSystemLogPrefix" jdbcType="VARCHAR"/>
+        <result column="es_system_log_type" property="esSystemLogType" jdbcType="VARCHAR"/>
+        <result column="es_nginx_log_type" property="esNginxLogType" jdbcType="VARCHAR"/>
+        <result column="es_nginx_log_prefix" property="esNginxLogPrefix" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--auto generated Code-->
+    <sql id="Base_Column_List">
+        id,
+        system,
+        system_name,
+        http_host,
+        es_system_log_prefix,
+        es_system_log_type,
+        es_nginx_log_type,
+        es_nginx_log_prefix
+    </sql>
+
+    <select id="findAllSystemConfig" resultMap="BaseResultMap">
+        select * from system_config;
+    </select>
+    <!--auto generated Code-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="systemConfig.id">
+        INSERT INTO system_config (
+            id,
+            system,
+            system_name,
+            http_host,
+            es_system_log_type,
+            es_nginx_log_type,
+            es_system_log_prefix,
+            es_nginx_log_prefix
+        ) VALUES (
+            #{systemConfig.id,jdbcType=BIGINT},
+            #{systemConfig.system,jdbcType=VARCHAR},
+            #{systemConfig.systemName,jdbcType=VARCHAR},
+            #{systemConfig.httpHost,jdbcType=VARCHAR},
+            #{systemConfig.esSystemLogType,jdbcType=VARCHAR},
+            #{systemConfig.esNginxLogType,jdbcType=VARCHAR},
+            #{systemConfig.esSystemLogPrefix,jdbcType=VARCHAR},
+            #{systemConfig.esNginxLogPrefix,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <!--auto generated Code-->
+    <insert id="insertSelective" useGeneratedKeys="true" keyProperty="systemConfig.id">
+        INSERT INTO system_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="systemConfig.id!=null"> id,</if>
+            <if test="systemConfig.system!=null"> system,</if>
+            <if test="systemConfig.systemName!=null"> system_name,</if>
+            <if test="systemConfig.httpHost!=null"> http_host,</if>
+            <if test="systemConfig.esSystemLogPrefix!=null"> es_system_log_prefix,</if>
+            <if test="systemConfig.esNginxLogPrefix!=null"> es_nginx_log_prefix,</if>
+            <if test="systemConfig.esSystemLogType!=null"> es_system_log_type,</if>
+            <if test="systemConfig.esNginxLogType!=null"> es_system_log_type,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="systemConfig.id!=null">#{systemConfig.id,jdbcType=BIGINT},
+            </if>
+            <if test="systemConfig.system!=null">#{systemConfig.system,jdbcType=VARCHAR},
+            </if>
+            <if test="systemConfig.systemName!=null">#{systemConfig.systemName,jdbcType=VARCHAR},
+            </if>
+            <if test="systemConfig.httpHost!=null">#{systemConfig.httpHost,jdbcType=VARCHAR},
+            </if>
+            <if test="systemConfig.esSystemLogPrefix!=null">#{systemConfig.esSystemLogPrefix,jdbcType=VARCHAR},
+            </if>
+            <if test="systemConfig.esNginxLogPrefix!=null">#{systemConfig.esNginxLogPrefix,jdbcType=VARCHAR},
+            </if>
+            <if test="systemConfig.esSystemLogType!=null">#{systemConfig.esSystemLogType,jdbcType=VARCHAR},
+            </if>
+            <if test="systemConfig.esNginxLogType!=null">#{systemConfig.esSystemLogType,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <!--auto generated Code-->
+    <insert id="insertList">
+        INSERT INTO system_config (
+        <include refid="Base_Column_List"/>
+        )VALUES
+        <foreach collection="systemConfigs" item="systemConfig" index="index" separator=",">
+            (
+            #{systemConfig.id,jdbcType=BIGINT},
+            #{systemConfig.system,jdbcType=VARCHAR},
+            #{systemConfig.systemName,jdbcType=VARCHAR},
+            #{systemConfig.httpHost,jdbcType=VARCHAR},
+            #{systemConfig.esSystemLogPrefix,jdbcType=VARCHAR},
+            #{systemConfig.esSystemLogType,jdbcType=VARCHAR},
+            #{systemConfig.esNginxLogType,jdbcType=VARCHAR},
+            #{systemConfig.esNginxLogPrefix,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <!--auto generated Code-->
+    <update id="update">
+        UPDATE system_config
+        <set>
+            <if test="systemConfig.id != null"> id= #{systemConfig.id,jdbcType=BIGINT},</if>
+            <if test="systemConfig.system != null"> system= #{systemConfig.system,jdbcType=VARCHAR},</if>
+            <if test="systemConfig.systemName != null"> system= #{systemConfig.systemName,jdbcType=VARCHAR},</if>
+            <if test="systemConfig.httpHost != null"> http_host= #{systemConfig.httpHost,jdbcType=VARCHAR},</if>
+            <if test="systemConfig.esSystemLogPrefix != null"> es_system_log_prefix= #{systemConfig.esSystemLogPrefix,jdbcType=VARCHAR},</if>
+            <if test="systemConfig.esSystemLogType != null"> es_system_log_type= #{systemConfig.esSystemLogType,jdbcType=VARCHAR},</if>
+            <if test="systemConfig.esNginxLogType != null"> es_system_log_type= #{systemConfig.esNginxLogType,jdbcType=VARCHAR},</if>
+            <if test="systemConfig.esNginxLogPrefix != null"> es_nginx_log_prefix= #{systemConfig.esNginxLogPrefix,jdbcType=VARCHAR}</if>
+        </set>
+        WHERE id = #{systemConfig.id,jdbcType=BIGINT}
+    </update>
+
+<!--auto generated by codehelper on 2018-09-07 18:59:58-->
+	<select id="findBySystem" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from system_config
+        where system=#{system,jdbcType=VARCHAR}
+    </select>
+
+</mapper>
+

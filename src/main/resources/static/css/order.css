@@ -1,0 +1,171 @@
+.order{
+	height: 100%;
+}
+/*右侧表单*/
+.el-row{
+ 	min-height: 100%;
+ }
+ .el-row>.el-col{
+ 	min-height: 100%;
+ }
+
+.main{
+	min-height: 100%;
+	background: #fff;
+	padding: 50px 30px 30px 30px;
+	box-sizing: border-box;
+ }
+ .main .el-select{
+ 	width: 100%;
+ 	display: block;
+ }
+
+ .el-date-editor.el-input{
+ 	width: 100%;
+ }
+ .main .time .el-form-item__content{
+ 	margin-left: 0 !important;
+ }
+.to{
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	color: #99A9BF;
+}
+.el-input__inner {
+	height: 40px;
+}
+.demo-form-inline{
+	border-bottom:1px solid #ddd;
+	margin-bottom: 20px;
+}
+.el-table th>.cell{
+	font-weight: initial;
+}
+.el-pagination {
+    text-align: right;
+    margin-top: 20px;
+    height: 40px;
+}
+.el-table_1_column_2{
+	color: #60bcff;
+	text-decoration:underline;
+	
+}
+.el-table_1_column_2:hover{
+	cursor:pointer
+}
+.first-li .manage{
+	width: 17px;
+ 	height: 18px;
+	background: url(../img/maon.png);
+	background-position: center;
+ 	background-size: cover;
+}
+.first-li a span{
+	font-size: 16px;
+	line-height: 16px;
+	color:#30a6fe;
+	vertical-align: middle;
+}
+
+.help-order {
+    margin-left: 10px;
+}
+
+/*弹框*/
+.el-dialog__footer{
+	text-align: center;
+}
+.diago div span{
+	line-height: 30px;
+}
+.diago div>span:nth-child(2){
+	margin-left: 7px;
+}
+.suce{
+	color:#51b5ff ;
+}
+.bod{
+	padding: 30px 0;
+	border-bottom: 1px solid #f0f3f7;
+}
+.bod1{
+	border: none;
+	color:#96a2b3 ;
+}
+.el-form-item__label{
+	 	width: 120px !important;
+	 }
+	 .el-form-item__content{
+	 	margin-left: 120px !important;
+	 }
+.el-pagination {
+    padding: 12px 0px;
+}
+.el-dialog{
+	padding-bottom: 15px;
+}
+.el-dialog__body{
+	padding-bottom: 100px;
+}
+
+@media screen and (min-width:1200px){
+	/*右侧表单*/
+	.el-row{
+	 	height: 100%;
+	 }
+	 .el-row>.el-col{
+	 	height: 100%;
+	 }
+	 .icon .close{
+		display: none;
+	}
+	 
+	/*弹框*/
+	.el-dialog__body{
+		padding-left: 50px;
+		padding-right: 50px;
+	}
+}
+
+@media screen and (min-width:768px) and (max-width:1199px){
+	.main .fl{
+		float: right;
+	}
+
+	
+	/*弹框*/
+}
+
+@media screen and (max-width:767px){
+	.main {
+	    padding: 30px 20px 0 20px;
+	    box-sizing: border-box;
+	}
+	.main .fl{
+		float: right;
+	}
+	.el-form-item{
+		margin-bottom: 10px;
+	}
+	.feature,.information,.ecej{
+		display: none;
+	}
+	.to{
+		text-align: right;
+		margin-right: 10px;
+	}
+	.todo{
+		float: none;
+		width: 120px;
+	}
+	.todo1{
+		padding-left: 120px;
+		width: 100%;
+	}
+	/*弹框*/
+	.mag{
+		margin-bottom: 15px;
+	}
+}

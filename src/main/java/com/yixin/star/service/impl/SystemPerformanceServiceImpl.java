@@ -1,0 +1,412 @@
+package com.yixin.star.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.yixin.common.utils.DateUitls;
+import com.yixin.common.utils.JsonObjectUtils;
+import com.yixin.star.ElasticClient;
+import com.yixin.star.dict.Constant;
+import com.yixin.star.dict.Dict;
+import com.yixin.star.domain.ActiveDict;
+import com.yixin.star.domain.SystemConfig;
+import com.yixin.star.dto.ESLogParamsDTO;
+import com.yixin.star.dto.EchartsDataDTO;
+import com.yixin.star.dto.RequestParamsDTO;
+import com.yixin.star.service.ActiveDictService;
+import com.yixin.star.service.SystemConfigService;
+import com.yixin.star.service.SystemPerformanceService;
+import com.yixin.star.utils.StarDateUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.threads.ThreadPoolExecutor;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Package : com.yixin.star.service.impl
+ *
+ * @author YixinCapital -- yinx
+ *         2018/9/7 20:58
+ */
+@Service("systemPerformanceService")
+public class SystemPerformanceServiceImpl implements SystemPerformanceService {
+    private static Logger logger = LoggerFactory.getLogger(SystemPerformanceServiceImpl.class);
+    @Autowired
+    private ElasticClient elasticClient;
+    @Autowired
+    private ActiveDictService activeDictService;
+    @Autowired
+    private SystemConfigService systemConfigService;
+
+    private Double[] count;
+    private Double[] count1;
+    private Double[] count2;
+
+    @Override
+    public EchartsDataDTO getTPCount(RequestParamsDTO requestParamsDTO) {
+        //初始化Y轴
+        count = new Double[]{0.0,0.0,0.0,0.0,0.0,0.0};
+        count1 = new Double[]{0.0,0.0,0.0,0.0,0.0,0.0};
+        count2 = new Double[]{0.0,0.0,0.0,0.0,0.0,0.0};
+        if (null == requestParamsDTO || StringUtils.isBlank(requestParamsDTO.getSystem())) {
+            return null;
+        }
+        String[] x = new String[6];
+        int corePoolSize = Runtime.getRuntime().availableProcessors();
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, corePoolSize*3, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000));
+        EchartsDataDTO echartsDataDTO = new EchartsDataDTO();
+        long begintime = System.currentTimeMillis();
+        //ActiveDict activeDict = new ActiveDict();
+        List<SystemConfig> systemConfigList = systemConfigService.findBySystem(requestParamsDTO.getSystem());
+        //activeDict.setActiveType(systemConfigList.get(0).getEsNginxLogType());
+        //activeDict.setSystem(requestParamsDTO.getSystem());
+        ESLogParamsDTO esLogParamsDTO = new ESLogParamsDTO();
+        if (StringUtils.isBlank(requestParamsDTO.getActiveId())) {
+            StringBuilder action = new StringBuilder("");
+            ActiveDict activeDict = new ActiveDict();
+            activeDict.setSystem(requestParamsDTO.getSystem());
+            List<ActiveDict> activeDictList = activeDictService.findNginxDictsByType(activeDict);
+            List<String> requestList = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(activeDictList)) {
+                activeDictList.forEach(activeDict1 -> {
+                    requestList.add(activeDict1.getActiveId());
+                });
+            }
+            esLogParamsDTO.setRequestList(requestList);
+            logger.info("===统计动作集合=={}",action.toString().trim());
+            esLogParamsDTO.setRequest(action.toString().trim());
+        } else {
+            esLogParamsDTO.setRequest(requestParamsDTO.getActiveId());
+        }
+        esLogParamsDTO.setResqlimit(requestParamsDTO.getResqlimit());
+        esLogParamsDTO.setHttp_host(systemConfigList.get(0).getHttpHost());
+        //esLogParamsDTO.setStatus_code("200");
+        esLogParamsDTO.setRespTimeSort(SortOrder.DESC);
+        String indexName = systemConfigList.get(0).getEsNginxLogPrefix();
+        String type = systemConfigList.get(0).getEsNginxLogType();
+        //需要等待启动多少个线程
+        CountDownLatch startlatch=new CountDownLatch(1);
+        //需要等待多少个线程完成后
+        CountDownLatch endlatch=new CountDownLatch(6);
+        Date startTime = requestParamsDTO.getCountDate();
+        Date endTime = new Date();
+        try {
+            for (int i=0;i<6;i++) {
+                String indexNamePrefix = DateUitls.dateToStr(startTime,"yyyy-MM-dd");
+                if (requestParamsDTO.getCountUnit().equals(Dict.FIVE_MINUTE.getCode())) {
+                    endTime = DateUitls.getMinute(startTime,5);
+                    String t = DateUitls.dateToStr(endTime,"HH:mm");
+                    x[i] = t;
+                }
+                if (requestParamsDTO.getCountUnit().equals(Dict.TEN_MINUTE.getCode())) {
+                    endTime = DateUitls.getMinute(startTime,10);
+                    String t = DateUitls.dateToStr(endTime,"HH:mm");
+                    x[i] = t;
+                }
+                if (requestParamsDTO.getCountUnit().equals(Dict.ONE_HOUR.getCode())) {
+                    endTime = StarDateUtils.getNHour(startTime,1);
+                    String t = DateUitls.dateToStr(endTime,"HH:mm");
+                    x[i] = t;
+                }
+                if (requestParamsDTO.getCountUnit().equals(Dict.ONE_DAY.getCode())) {
+                    startTime = DateUitls.strToDate(DateUitls.dateToStr(startTime,"yyyy-MM-dd 00:00:00"));
+                    endTime = StarDateUtils.getNDay(startTime,1);
+                    x[i] = indexNamePrefix;
+                }
+                esLogParamsDTO.setGteTimestamp(startTime);
+                esLogParamsDTO.setLteTimestamp(endTime);
+                ESLogParamsDTO logParamsDTO = new ESLogParamsDTO();
+                BeanUtils.copyProperties(esLogParamsDTO,logParamsDTO);
+                logParamsDTO.setIndexName(indexName+indexNamePrefix);
+                //logParamsDTO.setIndexName("nginx_ws-proxy-2017-11-26");
+                logParamsDTO.setIndex(i);
+                logParamsDTO.setType(type);
+                logParamsDTO.setTp(requestParamsDTO.getTp());
+                logParamsDTO.setSource(requestParamsDTO.getSource());
+                startTime = endTime;
+                executor.execute(new TPThread(logParamsDTO,startlatch,endlatch));
+                startlatch.countDown();
+            }
+            endlatch.await();
+            logger.info("查询完成，总耗时---{}",System.currentTimeMillis()-begintime);
+            echartsDataDTO.setY1(count);
+            echartsDataDTO.setY2(count1);
+            echartsDataDTO.setY3(count2);
+            echartsDataDTO.setX(x);
+            if (Dict.REQUEST_SOURCE_TP.getCode().equals(requestParamsDTO.getSource())) {
+                String xText = Dict.getDictsByTypeAndCode(Constant.TP,requestParamsDTO.getTp());
+                echartsDataDTO.setText(xText);
+            }
+        } catch (Exception e) {
+            logger.error("查询出现异常",e);
+        } finally {
+            executor.shutdown();
+        }
+        return echartsDataDTO;
+    }
+
+    class TPThread extends Thread{
+
+        private ESLogParamsDTO esLogParamsDTO;
+        private CountDownLatch startlatch;
+        private CountDownLatch endlatch;
+        public TPThread(ESLogParamsDTO esLogParamsDTO, CountDownLatch startlatch,CountDownLatch endlatch){
+            this.esLogParamsDTO = esLogParamsDTO;
+            this.startlatch=startlatch;
+            this.endlatch=endlatch;
+        }
+        @Override
+        public void run() {
+            try {
+                logger.info(esLogParamsDTO.getIndex()+"--开始查询--,参数：{}", JsonObjectUtils.objectToJson(esLogParamsDTO));
+                long start = System.currentTimeMillis();
+                if (Dict.REQUEST_SOURCE_TP.getCode().equals(esLogParamsDTO.getSource())) {
+                    getTPCount(esLogParamsDTO);
+                }
+                if (Dict.REQUEST_SOURCE_VISITIS.getCode().equals(esLogParamsDTO.getSource())) {
+                    getVisitisCount(esLogParamsDTO);
+                }
+                if (Dict.REQUEST_SOURCE_OPERATE_LEN.getCode().equals(esLogParamsDTO.getSource())) {
+                    getOperateLenCount(esLogParamsDTO);
+                }
+                if (Dict.REQUEST_SOURCE_OVER_LIMIT.getCode().equals(esLogParamsDTO.getSource())) {
+                    getOverLimitCount(esLogParamsDTO);
+                }
+                if (Dict.REQUEST_SOURCE_FAIL.getCode().equals(esLogParamsDTO.getSource())) {
+                    getFailCount(esLogParamsDTO);
+                }
+                long end = System.currentTimeMillis();
+                logger.info("--{}--线程消耗时间--{}" ,esLogParamsDTO.getIndex(),(end-start));
+            } catch (Exception e) {
+                logger.error("执行过程出现异常",e);
+            } finally {
+                //线程内容执行完成后，计数器减一
+                endlatch.countDown();
+            }
+        }
+    }
+
+    /**
+     * TP性能统计
+     * @param esLogParamsDTO
+     */
+    private void getTPCount( ESLogParamsDTO esLogParamsDTO) {
+        long location = 0;
+        int beginIndex = 0;
+        int endIndex = 1000;
+        boolean reSearchFlag = false;
+        double resqTime = 0.0;
+        String dictName = Dict.getDictsByTypeAndCode(Constant.TP,esLogParamsDTO.getTp());
+        logger.info("{}==开始统计",dictName);
+        esLogParamsDTO.setStatus_code("200");
+        SearchResponse response = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(),esLogParamsDTO.getType(),esLogParamsDTO,beginIndex,endIndex);
+        SearchHits hits = response.getHits();
+        long totalHits = hits.getTotalHits();
+        SearchHit[] searchHits = hits.getHits();
+        //TP90取前第10%个
+        if (Dict.TP90.getCode().equals(esLogParamsDTO.getTp())) {
+            location = Math.round(totalHits * 0.1);
+        }
+        if (Dict.TP50.getCode().equals(esLogParamsDTO.getTp())) {
+            location = Math.round(totalHits * 0.5);
+        }
+        //所在不在本次查询范围内，进行第二次查询
+        if (location > searchHits.length) {
+            beginIndex = (int) location;
+            endIndex = beginIndex + 1;
+            reSearchFlag = true;
+        }
+        if (location > 0) {
+            if (reSearchFlag) {
+                logger.info("{}--进行第二次查询，开始index--{}--条数--{}",dictName,beginIndex,10);
+                SearchResponse searchResponse = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(), esLogParamsDTO.getType(), esLogParamsDTO, beginIndex, 10);
+                SearchHits hits1 = searchResponse.getHits();
+                SearchHit[] searchHits1 = hits1.getHits();
+                Map<String, Object> responseMap = searchHits1[0].getSourceAsMap();
+                String res = responseMap.get("upstream_resptime").toString();
+                if (res.contains(",")) {
+                    String[] resarray = res.split(",");
+                    resqTime = Double.valueOf(resarray[resarray.length - 1]);
+                } else {
+                    resqTime = Double.valueOf(res);
+                }
+            } else {
+                Map<String, Object> responseMap = searchHits[(int) location - 1].getSourceAsMap();
+                String res = responseMap.get("upstream_resptime").toString();
+                if (res.contains(",")) {
+                    String[] resarray = res.split(",");
+                    resqTime = Double.valueOf(resarray[resarray.length - 1]);
+                } else {
+                    resqTime = Double.valueOf(res);
+                }
+            }
+            count[esLogParamsDTO.getIndex()] = resqTime;
+        }
+
+    }
+
+    /**
+     * 访问量统计
+     * @param esLogParamsDTO
+     */
+    private void getVisitisCount( ESLogParamsDTO esLogParamsDTO) {
+        logger.info("访问量开始统计==");
+        int beginIndex = 0;
+        int endIndex = 10;
+        SearchResponse response = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(),esLogParamsDTO.getType(),esLogParamsDTO,beginIndex,endIndex);
+        SearchHits hits = response.getHits();
+        long totalHits = hits.getTotalHits();
+        Long t = new Long(totalHits);
+        count[esLogParamsDTO.getIndex()] = t.doubleValue();
+    }
+
+    /**
+     * 操作时长统计
+     * @param esLogParamsDTO
+     */
+    private void getOperateLenCount( ESLogParamsDTO esLogParamsDTO) {
+        long location = 0;
+        int beginIndex = 0;
+        int endIndex = 10;
+        boolean reSearchFlag = false;
+        double avgTime = 0.0;
+        logger.info("===操作时长开始统计");
+        SearchResponse response = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(),esLogParamsDTO.getType(),esLogParamsDTO,beginIndex,endIndex);
+        SearchHits hits = response.getHits();
+        long totalHits = hits.getTotalHits();
+        SearchHit[] searchHits = hits.getHits();
+        if (searchHits.length>0) {
+            location = Math.round(totalHits * 0.5);
+            //所在不在本次查询范围内，进行第二次查询
+            if (location > searchHits.length) {
+                beginIndex = (int) location;
+                endIndex = beginIndex + 1;
+                reSearchFlag = true;
+            }
+            //最长响应时长
+            double maxResTime = 0.0;
+            Map<String, Object> responseMapt = searchHits[0].getSourceAsMap();
+            logger.info("最大时长日志=={}", JSON.toJSONString(responseMapt));
+            String rest = responseMapt.get("upstream_resptime").toString();
+            logger.info("获取到的最大时长=={}",rest);
+            if (rest.contains(",")) {
+                String[] resarray = rest.split(",");
+                maxResTime = Double.valueOf(resarray[resarray.length - 1]);
+            } else {
+                maxResTime = Double.valueOf(rest);
+            }
+            count[esLogParamsDTO.getIndex()] = maxResTime;
+            //平均响应时长
+            if (reSearchFlag) {
+                logger.info("操作时长统计-进行第二次查询，开始index--{}--条数--{}",beginIndex,10);
+                SearchResponse searchResponse = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(), esLogParamsDTO.getType(), esLogParamsDTO, beginIndex, 10);
+                SearchHits hits1 = searchResponse.getHits();
+                SearchHit[] searchHits1 = hits1.getHits();
+                Map<String, Object> responseMap = searchHits1[0].getSourceAsMap();
+                String res = responseMap.get("upstream_resptime").toString();
+                if (res.contains(",")) {
+                    String[] resarray = res.split(",");
+                    avgTime = Double.valueOf(resarray[resarray.length - 1]);
+                } else {
+                    avgTime = Double.valueOf(res);
+                }
+            } else {
+                Map<String, Object> responseMap = searchHits[(int) location - 1].getSourceAsMap();
+                String res = responseMap.get("upstream_resptime").toString();
+                if (res.contains(",")) {
+                    String[] resarray = res.split(",");
+                    avgTime = Double.valueOf(resarray[resarray.length - 1]);
+                } else {
+                    avgTime = Double.valueOf(res);
+                }
+            }
+            count1[esLogParamsDTO.getIndex()] = avgTime;
+            //最小响应时长
+            esLogParamsDTO.setRespTimeSort(SortOrder.ASC);
+            SearchResponse ascResponse = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(), esLogParamsDTO.getType(), esLogParamsDTO, 0, 1);
+            SearchHits hits2 = ascResponse.getHits();
+            SearchHit[] searchHits2 = hits2.getHits();
+            Map<String, Object> responseMap = searchHits2[0].getSourceAsMap();
+            String res = responseMap.get("upstream_resptime").toString();
+            double minResTime = 0.0;
+            if (res.contains(",")) {
+                String[] resarray = res.split(",");
+                minResTime = Double.valueOf(resarray[resarray.length - 1]);
+            } else {
+                minResTime = Double.valueOf(res);
+            }
+            count2[esLogParamsDTO.getIndex()] = minResTime;
+        }
+
+
+    }
+
+    /**
+     * 超出阈值统计
+     * @param esLogParamsDTO
+     */
+    private void getOverLimitCount( ESLogParamsDTO esLogParamsDTO) {
+        int beginIndex = 0;
+        int endIndex = 10;
+        logger.info("====超阈值访问统计");
+        //超出阈值访问量
+        SearchResponse searchResponse = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(), esLogParamsDTO.getType(), esLogParamsDTO, beginIndex, endIndex);
+        SearchHits hits1 = searchResponse.getHits();
+        long totalHits1 = hits1.getTotalHits();
+        Long t1 = new Long(totalHits1);
+        count1[esLogParamsDTO.getIndex()] = t1.doubleValue();
+        //总访问量
+        esLogParamsDTO.setResqlimit(null);
+        SearchResponse response = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(),esLogParamsDTO.getType(),esLogParamsDTO,beginIndex,endIndex);
+        SearchHits hits = response.getHits();
+        long totalHits = hits.getTotalHits();
+        Long t = new Long(totalHits);
+        count[esLogParamsDTO.getIndex()] = t.doubleValue();
+
+    }
+
+    /**
+     * 失败量统计
+     * @param esLogParamsDTO
+     */
+    private void getFailCount( ESLogParamsDTO esLogParamsDTO) {
+        int beginIndex = 0;
+        int endIndex = 10;
+        //总访问量
+        logger.info("===失败量统计");
+        SearchResponse response = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(),esLogParamsDTO.getType(),esLogParamsDTO,beginIndex,endIndex);
+        SearchHits hits = response.getHits();
+        long totalHits = hits.getTotalHits();
+        Long t = new Long(totalHits);
+        count[esLogParamsDTO.getIndex()] = t.doubleValue();
+        //失败访问量
+        ActiveDict activeDict = new ActiveDict();
+        List<Integer> codes = new ArrayList<>();
+        activeDict.setActiveType(Constant.FAIL_COUNT);
+        List<ActiveDict> dicts = activeDictService.selectDictsByActive(activeDict);
+        dicts.forEach(activeDict1 -> {
+            codes.add(Integer.valueOf(activeDict1.getActiveId()));
+        });
+        esLogParamsDTO.setStatusCodeList(codes);
+        SearchResponse searchResponse = elasticClient.searchByMuiltiParams(esLogParamsDTO.getIndexName(), esLogParamsDTO.getType(), esLogParamsDTO, beginIndex, endIndex);
+        SearchHits hits1 = searchResponse.getHits();
+        long totalHits1 = hits1.getTotalHits();
+        Long t1 = new Long(totalHits1);
+        count1[esLogParamsDTO.getIndex()] = t1.doubleValue();
+    }
+}
+

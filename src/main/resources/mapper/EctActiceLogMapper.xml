@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yixin.star.mapper.EctActiveLogMapper">
+    <resultMap type="com.yixin.star.domain.EctActiveLog" id="activeList">
+        <result column="id" property="id"/>
+        <result column="order_id"  property="orderId"/>
+        <result column="clue_id"  property="clueId"/>
+        <result column="active_id" property="activeId"/>
+        <result column="active_time" property="activeTime"/>
+    </resultMap>
+    <insert id="addActive" parameterType="com.yixin.star.domain.EctActiveLog" keyProperty="id" useGeneratedKeys="true">
+        insert into ect_active_log(id,order_id,clue_id, active_id,active_time) values(#{id},#{orderId},#{clueId}, #{activeId},#{activeTime})
+    </insert>
+    <insert id="batchAddActive" parameterType="com.yixin.star.domain.EctActiveLog" keyProperty="id" useGeneratedKeys="true">
+        <foreach collection="list" item="item" separator=";">
+            INSERT INTO ect_active_log(id,order_id,clue_id, active_id,active_time) values(#{item.id},#{item.orderId},#{item.clueId}, #{item.activeId},#{item.activeTime})
+        </foreach>
+    </insert>
+    <select id="selectByParams" parameterType="com.yixin.star.dto.EctActiveLogDTO" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM ect_active_log e
+        <where>
+            1=1
+            <if test="activeId != null">
+                AND e.active_id = #{activeId}
+            </if>
+            <if test="lteActiveTime != null">
+                AND e.active_time <![CDATA[ <= ]]> #{lteActiveTime}
+            </if>
+            <if test="gteActiveTime != null">
+                AND e.active_time <![CDATA[ >= ]]> #{gteActiveTime}
+            </if>
+        </where>
+
+    </select>
+    <select id="selectActivessByClueOrOrder" parameterType="com.yixin.star.dto.EctActiveLogDTO" resultMap="activeList">
+        SELECT * FROM ect_active_log e
+        <where>
+            1=1 AND ((e.clue_id = #{clueId} AND (e.order_id = NULL OR e.order_id = '')) OR ((e.clue_id = NULL OR e.clue_id = '')AND e.order_id = #{orderId}))
+        </where>
+
+    </select>
+    <update id="upodateEctActiveLog" parameterType="com.yixin.star.domain.EctActiveLog">
+        UPDATE ect_active_log
+        <set>
+            <if test="orderId != null">
+                order_id=#{orderId},
+            </if>
+            <if test="clueId != null">
+                clue_id=#{clueId}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+</mapper>

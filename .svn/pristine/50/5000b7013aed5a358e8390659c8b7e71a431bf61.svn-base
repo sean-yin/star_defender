@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yixin.star.mapper.ActiveDictMapper">
+    <resultMap type="com.yixin.star.domain.ActiveDict" id="dictList">
+        <result column="id" property="id"/>
+        <result column="active_type"  property="activeType"/>
+        <result column="active_id" property="activeId"/>
+        <result column="active_name" property="activeName"/>
+        <result column="system" property="system"/>
+    </resultMap>
+    <select id="selectAllActive" resultType="com.yixin.star.domain.ActiveDict">
+        SELECT
+        t.id AS id,
+        t.active_id AS activeId,
+        t.active_name AS activeName,
+        t.active_type AS activeType
+        FROM
+        active_dict t
+    </select>
+    <select id="selectDictsByType" resultMap="dictList" parameterType="java.lang.String">
+        SELECT
+        *
+        FROM
+        active_dict t
+        WHERE t.active_type = #{activeType}
+    </select>
+    <select id="selectDictsByActive" resultMap="dictList" parameterType="com.yixin.star.domain.ActiveDict">
+        SELECT
+        *
+        FROM
+        active_dict t
+        WHERE
+        <if test="activeType != null">
+            t.active_type = #{activeType}
+        </if>
+        <if test="activeId != null">
+            AND t.active_id = #{activeId}
+        </if>
+        <if test="system != null">
+            AND t.system = #{system}
+        </if>
+    </select>
+</mapper>

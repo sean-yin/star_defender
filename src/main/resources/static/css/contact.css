@@ -1,0 +1,147 @@
+.contact{
+	height: 100%;
+}
+::-webkit-input-placeholder {
+	color: #f00;
+    font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+    }
+.mainbody {
+    position: relative;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    padding-top: 60px;
+    height: 100%;
+}
+.sec-li .help{
+	width: 17px;
+ 	height: 19px;
+	background: url(../img/heon.png);
+	background-position: center;
+ 	background-size: cover;
+}
+.sec-li a span{
+	font-size: 16px;
+	line-height: 16px;
+	color:#30a6fe;
+	vertical-align: middle;
+}
+
+/*.el-radio__label,.el-form-item__label,.el-form-item__content{
+	font-size: 16px;
+}*/
+.ptitle{
+	color: #000;
+	font-size: 16px;
+	text-align: center;
+	margin-bottom: 30px;
+}
+.main {
+    padding: 50px;
+}
+.postmsg .el-form-item__content {
+    margin-top: 20px;
+    text-align: center;
+}
+.el-icon-search:before {
+    position: absolute;
+    top: 11px;
+    left: 8px;
+    color: #d5dee7;
+}
+.search:hover{
+	cursor: pointer;
+}
+.search .el-input__inner{
+	padding-left: 25px;
+}
+.detail{
+	margin:0 10px;
+	
+}
+
+
+.res li{
+	margin-bottom: 15px;
+}
+
+.res p{
+	margin-bottom: 5px;
+	font-size: 14px;
+}
+.res p.cityname{
+	font-weight: bold;
+	font-size: 16px;
+}
+
+/*弹窗*/
+
+.city{
+	margin: 0 40px 0 20px;
+	
+}
+.submit{
+	width: 80px;
+	margin-left: 60px;
+}
+@media screen and (min-width:1200px){
+	/*右侧表单*/
+	.el-row{
+	 	height: 100%;
+	 }
+	 .el-row>.el-col{
+	 	height: 100%;
+	 }
+	.el-form-item {
+		height: 40px;
+	    margin-bottom: 30px;
+	}
+	.pad{
+		padding-left: 100px;
+	}
+	
+}
+@media screen and (min-width:768px) and (max-width:1199px){
+	.el-row{
+	 	height: 100%;
+	 }
+	 .el-row>.el-col{
+	 	height: 100%;
+	 }	
+	 .el-form-item {
+	 	height: 40px;
+	    margin-bottom: 30px;
+	}
+}
+@media screen and (max-width:767px){
+	.left1{
+		display: none;
+	}
+	.el-row{
+	 	height: 100%;
+	 }
+	 .el-row>.el-col{
+	 	height: 100%;
+	 }	
+	 .el-radio__label,.el-form-item__label,.el-form-item__content{
+		font-size: 14px;
+	}
+	.main {
+    	padding: 50px 30px;
+	}
+	
+	.detail{
+		margin:10px 0px !important;
+	
+	}
+	
+	.city{
+		margin: 10px 0px;
+		
+	}
+	.submit{
+		width: 100%;
+		text-align: center;
+		margin-left: 0;
+	}
+}
